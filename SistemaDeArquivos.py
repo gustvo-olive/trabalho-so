@@ -1,5 +1,5 @@
 class SimpleOSSimulated:
-    def _init_(self):
+    def __init__(self):
         self.filesystem = {'root': {'type': 'directory', 'content': {}}}
         self.current_directory = self.filesystem['root']
 
