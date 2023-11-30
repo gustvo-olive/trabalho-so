@@ -48,6 +48,8 @@ class SimpleOSSimulated:
                 print(f"[DIR] {name}")
             else:
                 print(f"[FILE] {name}")
+        #Mostrar o diretorio atual
+        self.show_current_directory()
 
     def create_file(self, filename):
         if filename in self.current_directory['content']:
@@ -95,7 +97,7 @@ class SimpleOSSimulated:
             if 'content' in content and current_directory in content['content'].values():
                 return content
         return None
-
+    
     def rename_file(self, old_name, new_name):
         if old_name in self.current_directory['content']:
             self.current_directory['content'][new_name] = self.current_directory['content'].pop(old_name)
