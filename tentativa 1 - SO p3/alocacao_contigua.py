@@ -37,7 +37,7 @@ class AlocacaoContigua:
     def display_disk_allocation(self):
         for i in range(self.disk_space):
             if self.disk[i] == 0:
-                print(f"Block {i}: Free")
+                print(f"Bloco {i}: Livre")
             else:
                 allocated_file = None
                 for file_name, data in self.allocated_blocks.items():
@@ -48,6 +48,6 @@ class AlocacaoContigua:
                         break
 
                 if allocated_file:
-                    print(f"Block {i}: Allocated to '{allocated_file}'")
+                    print(f"Bloco {i}: Alocado para '{allocated_file}'")
                 else:
-                    print(f"Block {i}: Allocated to Unknown file (Possible inconsistency)")
+                    print(f"Bloco {i}: Alocado para um arquivo desconhecido (Possivel inconsistência)")
