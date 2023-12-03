@@ -1,11 +1,11 @@
-from alocacao_contigua import AlocacaoContigua
+from alocacao_encadeada import Node,AlocacaoEncadeada
 
 class SimpleOSSimulated:
     def __init__(self):
         self.filesystem = {'root': {'type': 'directory', 'content': {}}}
         self.current_directory = self.filesystem['root']
 
-        self.file_allocation = AlocacaoContigua(disk_space=24)
+        self.file_allocation = AlocacaoEncadeada(disk_space=24)
 
     def command_prompt(self):
         self.clear_screen()

@@ -3,7 +3,7 @@ class Node:
         self.index = index
         self.next = None
 
-class LinkedAllocation:
+class AlocacaoEncadeada:
     def __init__(self, disk_space):
         self.disk_space = disk_space
         self.disk = [Node(i) for i in range(disk_space)]  # Representação do disco como uma lista de Nodes
