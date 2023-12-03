@@ -58,7 +58,6 @@ class AlocacaoEncadeada:
                 self.disk[index].allocated = False  # Marca os blocos como livres novamente
 
             last_free_block = self.disk[indices[-1]]
-#            last_free_block.next = self.free_head  # Conecta os blocos desalocados à lista de blocos livres
             self.free_head = self.disk[indices[0]]
 
             del self.allocated_blocks[file_name]  # Remove o arquivo do dicionário de blocos alocados
