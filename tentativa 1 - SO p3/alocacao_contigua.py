@@ -23,6 +23,64 @@ class AlocacaoContigua:
 
         return False  # Não há espaço suficiente para alocar o arquivo
     
+    def allocate_best_fit(self, file_name, file_size):
+        indice_start = -1
+        best_fit_size = self.disk_space-1 #Começando pelo valor maximo de blocos de disco para realizar comparacoes
+
+        current_start = -1
+        current_size = 0
+
+        for i, block in enumerate(self.disk):
+            if block == 0:  # Verifica se o bloco está livre
+                if current_start == -1:
+                    current_start = i  # Marca o início do bloco livre
+                current_size += 1  # Incrementa o tamanho do bloco livre
+
+                if current_size >= file_size and current_size < best_fit_size and (i + file_size >= len(self.disk) or self.disk[i + file_size] == 1):
+                    indice_start = current_start
+                    best_fit_size = current_size
+
+            else:
+                current_start = -1
+                current_size = 0
+
+        if indice_start != -1:
+            for i in range(indice_start, indice_start + file_size):
+                self.disk[i] = 1  # Marca os blocos como alocados
+            self.allocated_blocks[file_name] = {'start': indice_start, 'size': file_size}
+            return True  # Arquivo alocado com sucesso
+
+        return False  # Não há espaço suficiente para alocar o arquivo
+    
+    def allocate_worst_fit(self, file_name, file_size):
+        indice_start = -1
+        worst_fit_size = 0  # Começando pelo valor mínimo possível para realizar comparações
+
+        current_start = -1
+        current_size = 0
+
+        for i, block in enumerate(self.disk):
+            if block == 0:  # Verifica se o bloco está livre
+                if current_start == -1:
+                    current_start = i  # Marca o início do bloco livre
+                current_size += 1  # Incrementa o tamanho do bloco livre
+
+                if current_size >= file_size and current_size > worst_fit_size and (i + file_size >= len(self.disk) or self.disk[i + file_size] == 1):
+                    indice_start = current_start
+                    worst_fit_size = current_size
+
+            else:
+                current_start = -1
+                current_size = 0
+
+        if indice_start != -1:
+            for i in range(indice_start, indice_start + file_size):
+                self.disk[i] = 1  # Marca os blocos como alocados
+            self.allocated_blocks[file_name] = {'start': indice_start, 'size': file_size}
+            return True  # Arquivo alocado com sucesso
+
+        return False  # Não há espaço suficiente para alocar o arquivo
+            
     def deallocate_blocks(self, file_name):
         if file_name in self.allocated_blocks:
             start = self.allocated_blocks[file_name]['start']
