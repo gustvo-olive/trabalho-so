@@ -8,6 +8,7 @@ class SimpleOSSimulated:
         self.file_allocation = AlocacaoContigua(disk_space=24)
 
     def command_prompt(self):
+        self.clear_screen()
         while True:
             command = input("SimpleOS> ").strip().split()
             if not command:
@@ -17,6 +18,10 @@ class SimpleOSSimulated:
                 break
             elif command[0] == "ls":
                 self.list_directory()
+            elif command[0] == "clean":
+                self.clear_screen()
+            elif command[0] == "help":
+                self.help()
             elif command[0] == "create":
                 if len(command) > 3:
                     self.create_file(command[1], command[2], command[3])
@@ -42,7 +47,7 @@ class SimpleOSSimulated:
                     self.remove_file(command[1])
                 else:
                     print("Nome do arquivo não especificado")
-            elif command[0] == "allocation":
+            elif command[0] == "disk":
                 self.file_allocation.display_disk_allocation()
             elif command[0] == "open":
                 if len(command) > 2:
@@ -67,6 +72,36 @@ class SimpleOSSimulated:
                     print("Nome do arquivo não especificado.")
             else:
                 print(f"Comando '{command[0]}' não reconhecido.")
+    
+    def help(self):
+        print("""
+        Comandos disponíveis:
+        - ls: Listar conteúdo do diretório atual.
+        - create <nome_arquivo> <tamanho> <algoritmo>: Criar um arquivo com um algoritmo de alocação (first-fit, best-fit, worst-fit).
+        - mkdir <nome_diretório>: Criar um diretório.
+        - cd <nome_diretório>: Mudar para um diretório.
+        - rename <nome_antigo> <novo_nome>: Renomear um arquivo.
+        - remove <nome_arquivo>: Remover um arquivo.
+        - disk: Mostrar alocação de disco.
+        - open <nome_arquivo> <modo>: Abrir um arquivo.
+        - write <conteúdo>: Escrever conteúdo em um arquivo aberto.
+        - read <nome_arquivo>: Ler conteúdo de um arquivo.
+        - close <nome_arquivo>: Fechar um arquivo aberto.
+        - clean: Limpar a tela. 
+        - exit: Encerrar o SimpleOS.
+        """)
+
+    def clear_screen(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    def list_directory(self):
+        print(f"Diretório atual: C:{self.get_current_directory_path()}")
+        for name, data in self.current_directory['content'].items():
+            if data['type'] == 'directory':
+                print(f"[DIR] {name}")
+            else:
+                print(f"[FILE] {name}")
+        # Mostrar o diretório atual
 
     def list_directory(self):
         print(f"Diretório atual: C:{self.get_current_directory_path()}")
@@ -190,7 +225,19 @@ class SimpleOSSimulated:
     
     def rename_file(self, old_name, new_name):
         if old_name in self.current_directory['content']:
-            self.current_directory['content'][new_name] = self.current_directory['content'].pop(old_name)
+            old_file = self.current_directory['content'][old_name]
+
+            # Renomeia o arquivo no diretório
+            self.current_directory['content'][new_name] = old_file
+
+            # Remove a entrada do arquivo antigo do diretório
+            del self.current_directory['content'][old_name]
+
+            # Atualiza a entrada de alocação se o arquivo estava alocado
+            if old_name in self.file_allocation.allocated_blocks:
+                allocation_info = self.file_allocation.allocated_blocks.pop(old_name)
+                self.file_allocation.allocated_blocks[new_name] = allocation_info
+
             print(f"Arquivo '{old_name}' renomeado para '{new_name}' com sucesso.")
         else:
             print(f"Arquivo '{old_name}' não encontrado.")
