@@ -25,18 +25,19 @@ class AlocacaoContigua:
     
     def allocate_best_fit(self, file_name, file_size):
         indice_start = -1
-        best_fit_size = self.disk_space-1 #Começando pelo valor maximo de blocos de disco para realizar comparacoes
+        best_fit_size = self.disk_space
 
         current_start = -1
         current_size = 0
 
         for i, block in enumerate(self.disk):
-            if block == 0:  # Verifica se o bloco está livre
+            if block == 0:  
                 if current_start == -1:
-                    current_start = i  # Marca o início do bloco livre
-                current_size += 1  # Incrementa o tamanho do bloco livre
+                    current_start = i  
+                current_size += 1  
 
-                if current_size >= file_size and current_size < best_fit_size and (i + file_size >= len(self.disk) or self.disk[i + file_size] == 1):
+                # Modificação na condição para acomodar o tamanho 1 ou 2 do arquivo
+                if (current_size >= file_size or current_size == file_size - 1 or current_size == file_size - 2) and current_size <= best_fit_size:
                     indice_start = current_start
                     best_fit_size = current_size
 
@@ -46,11 +47,11 @@ class AlocacaoContigua:
 
         if indice_start != -1:
             for i in range(indice_start, indice_start + file_size):
-                self.disk[i] = 1  # Marca os blocos como alocados
+                self.disk[i] = 1  
             self.allocated_blocks[file_name] = {'start': indice_start, 'size': file_size}
-            return True  # Arquivo alocado com sucesso
+            return True  
 
-        return False  # Não há espaço suficiente para alocar o arquivo
+        return False 
     
     def allocate_worst_fit(self, file_name, file_size):
         indice_start = -1
