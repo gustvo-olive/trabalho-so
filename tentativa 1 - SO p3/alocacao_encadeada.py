@@ -38,13 +38,13 @@ class AlocacaoEncadeada:
 
                 return True
 
-            if current_block.allocated:
+            if not current_block.allocated:
                 # Se o bloco já estiver alocado, reinicia a contagem de blocos
-                blocks_allocated = 0
-                allocated_indices = []
-            else:
+                #blocks_allocated = 0
+                #allocated_indices = []
                 allocated_indices.append(current_block.index)
                 blocks_allocated += 1
+                
 
             previous_block = current_block
             current_block = current_block.next
@@ -75,6 +75,6 @@ class AlocacaoEncadeada:
                 print(f"Bloco {current_block.index}: Livre")
             current_block = current_block.next
 
- #       for file_name, indices in self.allocated_blocks.items():
-  #          for index in indices:
-   #             print(f"Bloco {index}: Alocado para '{file_name}'")
+        for file_name, indices in self.allocated_blocks.items():
+            for index in indices:
+                print(f"Bloco {index}: Alocado para '{file_name}'")
