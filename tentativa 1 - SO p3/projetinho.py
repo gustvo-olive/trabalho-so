@@ -190,7 +190,19 @@ class SimpleOSSimulated:
     
     def rename_file(self, old_name, new_name):
         if old_name in self.current_directory['content']:
-            self.current_directory['content'][new_name] = self.current_directory['content'].pop(old_name)
+            old_file = self.current_directory['content'][old_name]
+
+            # Renomeia o arquivo no diretório
+            self.current_directory['content'][new_name] = old_file
+
+            # Remove a entrada do arquivo antigo do diretório
+            del self.current_directory['content'][old_name]
+
+            # Atualiza a entrada de alocação se o arquivo estava alocado
+            if old_name in self.file_allocation.allocated_blocks:
+                allocation_info = self.file_allocation.allocated_blocks.pop(old_name)
+                self.file_allocation.allocated_blocks[new_name] = allocation_info
+
             print(f"Arquivo '{old_name}' renomeado para '{new_name}' com sucesso.")
         else:
             print(f"Arquivo '{old_name}' não encontrado.")
