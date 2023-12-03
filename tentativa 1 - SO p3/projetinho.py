@@ -243,6 +243,32 @@ class SimpleOSSimulated:
         else:
             print(f"Arquivo '{old_name}' não encontrado.")
 
+    def get_file_info(self, file_name=None):
+
+        if file_name in self.current_directory['content']: # Teste para saber se o arquivo se encontra no diretorio atual
+            file_path, block_count, start_block = self.get_attributes(file_name)
+
+            if file_path is not None and block_count is not None and start_block is not None:
+                if file_path.startswith(f"C:{self.get_current_directory_path()}"):
+                    print(f"Caminho do arquivo: {file_path}")
+                    print(f"Quantidade de blocos: {block_count}")
+                    print(f"Primeiro bloco: {start_block}")
+                else:
+                    print(f"O arquivo '{file_name}' não está no diretório atual.")
+        else:
+            print(f"O arquivo '{file_name}' não foi encontrado.")
+
+    def get_attributes(self, file_name):
+        allocation_info = self.file_allocation.allocated_blocks.get(file_name)
+
+        if allocation_info is not None:
+            file_path = f"C:{self.get_current_directory_path()}/{file_name}"  # Caminho do arquivo
+            block_count = allocation_info['size'] # Tamanho do arquivo
+            start_block = allocation_info['start'] # Onde começa o arquivo no disco
+            return file_path, block_count, start_block
+
+        return None, None, None
+
     def open_file(self, file_name, mode):
         try:
             if file_name in self.current_directory['content'] and self.current_directory['content'][file_name]['type'] == 'file':
