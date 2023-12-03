@@ -3,7 +3,6 @@ class Node:
         self.index = index
         self.next = None
 
-
 class LinkedAllocation:
     def __init__(self, disk_space):
         self.disk_space = disk_space
