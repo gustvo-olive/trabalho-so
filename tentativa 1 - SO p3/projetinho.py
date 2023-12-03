@@ -1,4 +1,5 @@
 from alocacao_contigua import AlocacaoContigua
+import os
 
 class SimpleOSSimulated:
     def __init__(self):
