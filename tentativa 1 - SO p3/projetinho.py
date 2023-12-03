@@ -117,7 +117,14 @@ class SimpleOSSimulated:
         if filename in self.current_directory['content']:
             print(f"Arquivo '{filename}' já existe.")
         else:
-            allocated_blocks = self.file_allocation.allocate_first_fit(filename, file_size)
+            allocated_blocks = None
+
+            if allocation_algorithm == "first-fit":
+                allocated_blocks = self.file_allocation.allocate_first_fit(filename, file_size)
+            elif allocation_algorithm == "best-fit":
+                allocated_blocks = self.file_allocation.allocate_best_fit(filename, file_size)
+            elif allocation_algorithm == "worst-fit":
+                allocated_blocks = self.file_allocation.allocate_worst_fit(filename, file_size)
 
             if allocated_blocks:
                 self.current_directory['content'][filename] = {
