@@ -1,4 +1,5 @@
 from alocacao_encadeada import Node,AlocacaoEncadeada
+import os
 
 class SimpleOSSimulated:
     def __init__(self):
@@ -23,8 +24,8 @@ class SimpleOSSimulated:
             elif command[0] == "help":
                 self.help()
             elif command[0] == "create":
-                if len(command) > 3:
-                    self.create_file(command[1], command[2], command[3])
+                if len(command) > 2:
+                    self.create_file(command[1], command[2])
                 else:
                     print("Nome do arquivo, tamanho do arquivo ou tipo de alocacao não especificados.")
             elif command[0] == "mkdir":
@@ -134,7 +135,7 @@ class SimpleOSSimulated:
 
         return '/'.join(path)
     
-    def create_file(self, filename, file_size, allocation_algorithm):
+    def create_file(self, filename, file_size):
         try:
             file_size = int(file_size)
         except ValueError:
@@ -145,21 +146,10 @@ class SimpleOSSimulated:
             print("Tamanho do arquivo deve ser um número inteiro positivo.")
             return
 
-        if allocation_algorithm not in ["first-fit", "best-fit", "worst-fit"]:
-            print("Algoritmo de alocação não reconhecido.")
-            return
-
         if filename in self.current_directory['content']:
             print(f"Arquivo '{filename}' já existe.")
         else:
-            allocated_blocks = None
-
-            if allocation_algorithm == "first-fit":
-                allocated_blocks = self.file_allocation.allocate_first_fit(filename, file_size)
-            elif allocation_algorithm == "best-fit":
-                allocated_blocks = self.file_allocation.allocate_best_fit(filename, file_size)
-            elif allocation_algorithm == "worst-fit":
-                allocated_blocks = self.file_allocation.allocate_worst_fit(filename, file_size)
+            allocated_blocks = self.file_allocation.allocate_file(filename,file_size)
 
             if allocated_blocks:
                 self.current_directory['content'][filename] = {

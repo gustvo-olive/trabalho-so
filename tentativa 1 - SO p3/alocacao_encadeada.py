@@ -2,11 +2,13 @@ class Node:
     def __init__(self, index):
         self.index = index
         self.next = None
+        self.allocated = False  # Flag para marcar se o bloco está alocado
+
 
 class AlocacaoEncadeada:
     def __init__(self, disk_space):
         self.disk_space = disk_space
-        self.disk = [Node(i) for i in range(disk_space)]  # Representação do disco como uma lista de Nodes
+        self.disk = [Node(i) for i in range(disk_space)]  # Lista de Nodes representando o disco
         self.free_head = self.disk[0]  # O primeiro bloco livre é o início da lista encadeada de blocos livres
         for i in range(disk_space - 1):
             self.disk[i].next = self.disk[i + 1]  # Configura os ponteiros para os próximos blocos livres
@@ -23,16 +25,10 @@ class AlocacaoEncadeada:
         allocated_indices = []
 
         while current_block:
-            if current_block.next is None and blocks_allocated < file_size:
-                return False  # Não há espaço contíguo suficiente para alocar o arquivo
-
-            allocated_indices.append(current_block.index)
-            blocks_allocated += 1
-
             if blocks_allocated == file_size:
                 # O suficiente espaço foi encontrado para alocar o arquivo
                 for index in allocated_indices:
-                    self.disk[index] = None  # Marca os blocos como alocados
+                    self.disk[index].allocated = True  # Marca os blocos como alocados
                 self.allocated_blocks[file_name] = allocated_indices
                 if previous_block:
                     previous_block.next = current_block.next  # Remove os blocos alocados da lista encadeada de livres
@@ -41,19 +37,34 @@ class AlocacaoEncadeada:
 
                 return True
 
+            if current_block.allocated:
+                # Se o bloco já estiver alocado, reinicia a contagem de blocos
+                blocks_allocated = 0
+                allocated_indices = []
+
+            allocated_indices.append(current_block.index)
+            blocks_allocated += 1
+
             previous_block = current_block
             current_block = current_block.next
+
+        return False  # Não há espaço contíguo suficiente para alocar o arquivo
 
     def deallocate_blocks(self, file_name):
         if file_name in self.allocated_blocks:
             indices = self.allocated_blocks[file_name]
             for index in indices:
-                self.disk[index] = Node(index)  # Marca os blocos como livres novamente
-                self.disk[index].next = None
+                self.disk[index].allocated = False  # Marca os blocos como livres novamente
 
-            last_free_block = self.disk[indices[-1]]
-            last_free_block.next = self.free_head  # Conecta os blocos desalocados de volta à lista de blocos livres
-            self.free_head = self.disk[indices[0]]
+            # Encontra o último bloco desalocado para reconstruir a lista encadeada
+            last_free_block = None
+            for i in range(len(self.disk)):
+                if not self.disk[i].allocated:
+                    last_free_block = self.disk[i]
+
+            if last_free_block:
+                last_free_block.next = self.free_head  # Conecta os blocos desalocados de volta à lista de blocos livres
+                self.free_head = self.disk[indices[0]]
 
             del self.allocated_blocks[file_name]  # Remove o arquivo do dicionário de blocos alocados
             return True  # Blocos desalocados com sucesso
@@ -63,7 +74,10 @@ class AlocacaoEncadeada:
     def display_disk_allocation(self):
         current_block = self.free_head
         while current_block:
-            print(f"Bloco {current_block.index}: Livre")
+            if current_block.allocated:
+                print(f"Bloco {current_block.index}: Alocado")
+            else:
+                print(f"Bloco {current_block.index}: Livre")
             current_block = current_block.next
 
         for file_name, indices in self.allocated_blocks.items():
