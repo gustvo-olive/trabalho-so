@@ -132,9 +132,14 @@ class SimpleOSSimulated:
         else:
             # Verifica se o diretório especificado existe entre os filhos do diretório atual
             child = next((child for child in self.current_directory.children if child.name == directory_name), None)
+
             if child:
-                self.current_directory = child  # Define o diretório atual como o especificado
-                print(f"Entrou no diretório '{directory_name}'.")
+                # Verifica se o nó possui um atributo 'type' antes de tentar acessá-lo
+                if hasattr(child, 'type') and child.type == 'file':
+                    print(f"'{directory_name}' é um arquivo, não um diretório. Não é possível entrar.")
+                else:
+                    self.current_directory = child  # Define o diretório atual como o especificado
+                    print(f"Entrou no diretório '{directory_name}'.")
             else:
                 print(f"Diretório '{directory_name}' não encontrado.")
 
