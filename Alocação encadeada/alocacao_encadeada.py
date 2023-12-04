@@ -24,7 +24,7 @@ class AlocacaoEncadeada:
         blocks_allocated = 0
         allocated_indices = []
 
-        while current_block:
+        while current_block or previous_block:
             if blocks_allocated == file_size:
                 # Espaço suficiente encontrado para alocar o arquivo
                 for index in allocated_indices:
