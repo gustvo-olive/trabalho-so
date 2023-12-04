@@ -73,7 +73,7 @@ class AlocacaoEncadeada:
             else:
                 print(f"Bloco {current_block.index}: Livre")
             current_block = current_block.next
-
+        print("-------------------------")
         for file_name, indices in self.allocated_blocks.items():
             for index in indices:
                 print(f"Bloco {index}: Alocado para '{file_name}'")
