@@ -66,7 +66,7 @@ class AlocacaoEncadeada:
             return False  # Arquivo não encontrado ou não está alocado
 
     def display_disk_allocation(self):
-        current_block = self.free_head
+        current_block = self.disk[0]
         while current_block:
             if current_block.allocated:
                 print(f"Bloco {current_block.index}: Alocado")
