@@ -52,11 +52,6 @@ class SimpleOSSimulated:
                     print("Nome do arquivo não especificado")
             elif command[0] == "disk":
                 self.file_allocation.display_disk_allocation()
-            elif command[0] == "getinfo":
-                if len(command) > 1:
-                    self.get_file_info(command[1])
-                else:
-                    print("Nome do arquivo não especificado.")
             elif command[0] == "open":
                 if len(command) > 2:
                     self.open_file(command[1], command[2])
@@ -91,7 +86,6 @@ class SimpleOSSimulated:
         - rename <nome_antigo> <novo_nome>: Renomear um arquivo.
         - remove <nome_arquivo>: Remover um arquivo.
         - disk: Mostrar alocação de disco.
-        - getinfo <nome_arquivo>: Mostrar atributos de arquivo. 
         - open <nome_arquivo> <modo>: Abrir um arquivo.
         - write <conteúdo>: Escrever conteúdo em um arquivo aberto.
         - read <nome_arquivo>: Ler conteúdo de um arquivo.
@@ -233,37 +227,15 @@ class SimpleOSSimulated:
             print(f"Arquivo '{old_name}' não encontrado.")
 
 
-    def get_file_info(self, file_name=None):
-        # Busca pelo nó do arquivo na pasta atual
-        file_node = next((node for node in self.current_directory.children if node.name == file_name and node.type == 'file'), None)
-
-        if file_node:
-            # Obtém informações básicas sobre o arquivo
-            file_path, block_count, start_block = self.get_attributes(file_name)
-
-            if file_path is not None and block_count is not None and start_block is not None:
-                if file_path.startswith(f"C:{self.get_current_directory_path()}"):
-                    # Imprime informações sobre o arquivo se estiver no diretório atual
-                    print(f"Caminho do arquivo: {file_path}")
-                    print(f"Quantidade de blocos: {block_count}")
-                    print(f"Primeiro bloco: {start_block}")
-                else:
-                    print(f"O arquivo '{file_name}' não está no diretório atual.")
-        else:
-            print(f"O arquivo '{file_name}' não foi encontrado.")
-
-    def get_attributes(self, file_name):
-        # Obtém informações de alocação do arquivo do sistema de arquivos
-        allocation_info = self.file_allocation.allocated_blocks.get(file_name)
-
-        if allocation_info is not None:
-            # Constrói o caminho do arquivo, tamanho do arquivo e informações de alocação
-            path = f"{self.get_current_directory_path()}/{file_name}"  # Caminho completo do arquivo
-            block_count = allocation_info['size']  # Tamanho do arquivo
-            start_block = allocation_info['start']  # Onde começa o arquivo no disco
-            return path, block_count, start_block
-
-        return None, None, None
+    
+    def get_file_path(self, file_node):
+        # Obtém o caminho completo do arquivo percorrendo os pais até o diretório raiz
+        path = file_node.name
+        parent = file_node.parent
+        while parent != self.filesystem:
+            path = f"{parent.name}/{path}"
+            parent = parent.parent
+        return f"C:/{path}"
 
     def open_file(self, file_name, mode):
         try:
