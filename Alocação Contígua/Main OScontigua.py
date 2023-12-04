@@ -120,8 +120,8 @@ class SimpleOSSimulated:
         else:
             print(f"O diretório '{directory_name}' já existe.")
 
-   def change_directory(self, directory_name):
-    # Altera o diretório atual para o especificado
+    def change_directory(self, directory_name):
+        # Altera o diretório atual para o especificado
         if directory_name == "..":
             # Se o diretório especificado for "..", muda para o diretório pai se não estiver no diretório raiz
             if self.current_directory != self.filesystem:
@@ -132,9 +132,10 @@ class SimpleOSSimulated:
         else:
             # Verifica se o diretório especificado existe entre os filhos do diretório atual
             child = next((child for child in self.current_directory.children if child.name == directory_name), None)
-    
+
             if child:
-                if child.type == 'file':
+                # Verifica se o nó possui um atributo 'type' antes de tentar acessá-lo
+                if hasattr(child, 'type') and child.type == 'file':
                     print(f"'{directory_name}' é um arquivo, não um diretório. Não é possível entrar.")
                 else:
                     self.current_directory = child  # Define o diretório atual como o especificado
