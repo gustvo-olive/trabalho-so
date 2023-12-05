@@ -37,19 +37,18 @@ class AlocacaoEncadeada:
                     self.free_head = current_block.next
 
                 return True
-
-            if not current_block.allocated:
+            if current_block is not None:
+                if not current_block.allocated:
                 # Se o bloco já estiver alocado, reinicia a contagem de blocos
                 #blocks_allocated = 0
                 #allocated_indices = []
-                allocated_indices.append(current_block.index)
-                blocks_allocated += 1
-                
-
-            previous_block = current_block
-            current_block = current_block.next
-
-        return False  # Não há espaço contíguo suficiente para alocar o arquivo
+                    allocated_indices.append(current_block.index)
+                    blocks_allocated += 1 
+                previous_block = current_block
+                current_block = current_block.next
+            else:
+                return False# Não há espaço contíguo suficiente para alocar o arquivo
+        return False 
 
     def deallocate_blocks(self, file_name):
         if file_name in self.allocated_blocks:
