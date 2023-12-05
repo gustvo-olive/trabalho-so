@@ -5,10 +5,10 @@ from anytree import Node, RenderTree  # Importa as classes Node e RenderTree do 
 class SimpleOSSimulated:
     def __init__(self):
         # Inicialização do sistema operacional simulado
-        self.filesystem = Node("Diretorio-raiz")  # Cria o nó raiz do sistema de arquivos
+        self.filesystem = Node("C:")  # Cria o nó raiz do sistema de arquivos
         self.current_directory = self.filesystem  # Define o diretório atual como o diretório raiz
-
-        self.file_allocation = AlocacaoContigua(disk_space=13)  # Inicializa a alocação contígua com espaço em disco de 13 blocos
+        self.disk_space = 13
+        self.file_allocation = AlocacaoContigua(self.disk_space)  # Inicializa a alocação contígua com espaço em disco de 13 blocos
 
     def command_prompt(self):
         self.clear_screen()
@@ -50,11 +50,16 @@ class SimpleOSSimulated:
                     self.remove_file(command[1])
                 else:
                     print("Nome do arquivo não especificado")
+            elif command[0] == "renamedir":
+                if len(command) > 2:
+                    self.rename_directory(command[1],command[2])
+                else:
+                    print("Nome do diretorio não especificado")
             elif command[0] == "disk":
                 self.file_allocation.display_disk_allocation()
             elif command[0] == "open":
-                if len(command) > 2:
-                    self.open_file(command[1], command[2])
+                if len(command) > 1:
+                    self.open_file(command[1])
                 else:
                     print("Nome do arquivo ou modo não especificado.")
             elif command[0] == "write":
@@ -84,6 +89,7 @@ class SimpleOSSimulated:
         - mkdir <nome_diretório>: Criar um diretório.
         - cd <nome_diretório>: Mudar para um diretório.
         - rename <nome_antigo> <novo_nome>: Renomear um arquivo.
+        - renamedir <nome_antigo> <novo_nome>: Renomear um diretorio.
         - remove <nome_arquivo>: Remover um arquivo.
         - disk: Mostrar alocação de disco.
         - open <nome_arquivo> <modo>: Abrir um arquivo.
@@ -158,6 +164,10 @@ class SimpleOSSimulated:
             # Verifica se o tamanho do arquivo é positivo
             print("Tamanho do arquivo deve ser um número inteiro positivo.")
             return
+        if file_size > self.disk_space:
+            #Verifica se o tamanho do arquivo é maior que o espaço de disco
+            print("Arquivo muito grande para o sistema")
+            return
 
         if allocation_algorithm not in ["first-fit", "best-fit", "worst-fit"]:
             # Verifica se o algoritmo de alocação é válido
@@ -207,11 +217,18 @@ class SimpleOSSimulated:
         else:
             print(f"Arquivo '{filename}' não encontrado.")
 
+
     def rename_file(self, old_name, new_name):
         # Busca pelo nó do arquivo na pasta atual
         file_node = next((node for node in self.current_directory.children if node.name == old_name and node.type == 'file'), None)
 
         if file_node:
+            # Verifica se o novo nome já existe
+            file_with_new_name = next((node for node in self.current_directory.children if node.name == new_name and node.type == 'file'), None)
+            if file_with_new_name:
+                print(f"Já existe um arquivo com o nome '{new_name}'. Escolha outro nome.")
+                return
+
             # Obtém informações sobre a alocação do arquivo pelo nome antigo
             old_allocation_info = self.file_allocation.allocated_blocks.pop(old_name, None)  # Remove a entrada antiga
             if old_allocation_info:
@@ -226,6 +243,20 @@ class SimpleOSSimulated:
         else:
             print(f"Arquivo '{old_name}' não encontrado.")
 
+    def rename_directory(self, current_name, new_name):
+        target_directory = next((child for child in self.current_directory.children if child.name == current_name), None)
+        
+        if not target_directory:
+            print(f"Diretório '{current_name}' não encontrado.")
+            return
+        
+        existing_names = [child.name for child in self.current_directory.children]
+        if new_name in existing_names:
+            print(f"Já existe um diretório com o nome '{new_name}'. Escolha outro nome.")
+            return
+        
+        target_directory.name = new_name
+        print(f"Diretório '{current_name}' renomeado para '{new_name}' com sucesso.")
 
     
     def get_file_path(self, file_node):
@@ -237,17 +268,26 @@ class SimpleOSSimulated:
             parent = parent.parent
         return f"C:/{path}"
 
-    def open_file(self, file_name, mode):
-        try:
-            # Verifica se o arquivo está no diretório atual e é um arquivo
-            if any(node.name == file_name and node.type == 'file' for node in self.current_directory.children):
-                self.current_file = file_name  # Define o arquivo atual
-                print(f"Arquivo '{file_name}' aberto no modo '{mode}'.")
-            else:
-                print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
-                self.current_file = None  # Define como None se não puder abrir
-        except KeyError:
-            print("Erro ao abrir o arquivo.")
+    def open_file(self, file_name):
+        # Inicializa o nó do arquivo como None
+        target_node = None
+        
+        # Itera pelos nós do diretório atual
+        for node in self.current_directory.children:
+            # Verifica se o nome do nó corresponde ao nome do arquivo procurado
+            if node.name == file_name:
+                # Verifica se o nó é um arquivo (possui o atributo 'type' e é do tipo 'file')
+                if hasattr(node, 'type') and node.type == 'file':
+                    target_node = node  # Define o nó como o arquivo encontrado
+                    break  # Interrompe a busca
+
+        # Verifica se o arquivo foi encontrado e é um arquivo válido
+        if target_node:
+            self.current_file = file_name  # Define o arquivo atual
+            print(f"Arquivo '{file_name}' aberto.")
+        else:
+            print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
+            self.current_file = None  # Define como None se não puder abrir
 
 
     def write_to_file(self, content):
@@ -268,27 +308,30 @@ class SimpleOSSimulated:
             print("Erro ao escrever no arquivo.")
 
     def read_from_file(self, file_name):
-        try:
-            target_node = None
-            for node in self.current_directory.children:
-                if node.name == file_name and node.type == 'file':
-                    target_node = node
-                    break
-            
-            if target_node:
-                content = target_node.content
-                print("Conteúdo do arquivo:")
-                print(content)
-            else:
-                print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
-        except KeyError:
-            print("Erro ao ler o arquivo.")
+        if any(node.name == file_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
+            try:
+                target_node = None
+                for node in self.current_directory.children:
+                    if node.name == file_name and node.type == 'file':
+                        target_node = node
+                        break
+                
+                if target_node:
+                    content = target_node.content
+                    print("Conteúdo do arquivo:")
+                    print(content)
+                else:
+                    print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
+            except KeyError:
+                print("Erro ao ler o arquivo.")
+        else:
+            print("Não é um arquivo")
 
 
     def close_file(self, file_name):
         try:
             # Verifica se o arquivo está aberto no diretório atual
-            if any(node.name == file_name and node.type == 'file' for node in self.current_directory.children):
+            if any(node.name == file_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
                 print(f"Arquivo '{file_name}' fechado com sucesso.")
                 # Define o arquivo atual como None para indicar que nenhum arquivo está aberto
                 self.current_file = None
