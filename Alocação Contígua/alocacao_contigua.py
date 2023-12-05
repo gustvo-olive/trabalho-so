@@ -25,27 +25,27 @@ class AlocacaoContigua:
     
     def allocate_best_fit(self, file_name, file_size):
         indice_start = -1  # Índice de início da alocação
-        best_fit_size = self.disk_space  # Tamanho inicial para melhor encaixe
-    
+        best_fit_size = float('inf')  # Tamanho inicial para melhor encaixe
+
         current_start = -1  # Início do bloco atualmente verificado
         current_size = 0  # Tamanho do bloco atual
-    
+
         # Percorre os blocos do disco
         for i, block in enumerate(self.disk):
             if block == 0:  # Verifica se o bloco está livre
                 if current_start == -1:
                     current_start = i  # Marca o início do bloco livre
                 current_size += 1  # Incrementa o tamanho do bloco livre
-    
-                # Modificação na condição para acomodar tamanhos específicos de arquivo
-                if (current_size >= file_size or current_size == file_size - 1 or current_size == file_size - 2) and current_size <= best_fit_size:
+
+                # Modificação na condição para encontrar o melhor encaixe
+                if current_size >= file_size and current_size < best_fit_size:
                     indice_start = current_start
                     best_fit_size = current_size  # Atualiza o melhor tamanho encontrado
-    
+
             else:  # Se o bloco não estiver livre, reinicia a busca
                 current_start = -1
                 current_size = 0
-    
+
         # Se houver espaço para alocar o arquivo
         if indice_start != -1:
             # Marca os blocos como alocados
@@ -54,9 +54,8 @@ class AlocacaoContigua:
             # Registra a alocação na estrutura de dados
             self.allocated_blocks[file_name] = {'start': indice_start, 'size': file_size}
             return True  # Arquivo alocado com sucesso
-    
+
         return False  # Não há espaço suficiente para alocar o arquivo
-    
     
     def allocate_worst_fit(self, file_name, file_size):
         indice_start = -1  # Índice de início da alocação
