@@ -198,6 +198,11 @@ class SimpleOSSimulated:
             print(f"Arquivo '{filename}' não encontrado.")
     
     def rename_directory(self, current_name, new_name):
+        
+        if any(node.name == current_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
+            print(f"{current_name} não é um diretorio")
+            return
+        
         target_directory = next((child for child in self.current_directory.children if child.name == current_name), None)
         
         if not target_directory:
@@ -211,7 +216,7 @@ class SimpleOSSimulated:
         
         target_directory.name = new_name
         print(f"Diretório '{current_name}' renomeado para '{new_name}' com sucesso.")
-    
+
     def open_file(self, file_name):
         # Verifica se o arquivo está no diretório atual e é um arquivo
         if any(node.name == file_name and node.type == 'file' for node in self.current_directory.children):
@@ -260,7 +265,7 @@ class SimpleOSSimulated:
             except KeyError:
                 print("Erro ao ler o arquivo.")
         else:
-            print("Não é um arquivo")
+            print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
 
 
     def close_file(self, file_name):
