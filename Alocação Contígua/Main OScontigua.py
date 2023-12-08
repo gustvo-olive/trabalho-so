@@ -7,8 +7,10 @@ class SimpleOSSimulated:
         # Inicialização do sistema operacional simulado
         self.filesystem = Node("C:")  # Cria o nó raiz do sistema de arquivos
         self.current_directory = self.filesystem  # Define o diretório atual como o diretório raiz
-        self.disk_space = 13
-        self.file_allocation = AlocacaoContigua(self.disk_space)  # Inicializa a alocação contígua com espaço em disco de 13 blocos
+        self.current_file = None  # Guarda o arquivo atualmente aberto
+
+        self.disk_space = 13 # Definindo o disco com espaço de 13 blocos
+        self.file_allocation = AlocacaoContigua(self.disk_space)  # Inicializa a alocação contígua 
 
     def command_prompt(self):
         self.clear_screen()
@@ -61,7 +63,7 @@ class SimpleOSSimulated:
                 if len(command) > 1:
                     self.open_file(command[1])
                 else:
-                    print("Nome do arquivo ou modo não especificado.")
+                    print("Nome do arquivo não especificado.")
             elif command[0] == "write":
                 if len(command) > 1:  
                     content_to_write = ' '.join(command[1:])  
@@ -92,7 +94,7 @@ class SimpleOSSimulated:
         - renamedir <nome_antigo> <novo_nome>: Renomear um diretorio.
         - remove <nome_arquivo>: Remover um arquivo.
         - disk: Mostrar alocação de disco.
-        - open <nome_arquivo> <modo>: Abrir um arquivo.
+        - open <nome_arquivo>: Abrir um arquivo.
         - write <conteúdo>: Escrever conteúdo em um arquivo aberto.
         - read <nome_arquivo>: Ler conteúdo de um arquivo.
         - close <nome_arquivo>: Fechar um arquivo aberto.
@@ -244,6 +246,11 @@ class SimpleOSSimulated:
             print(f"Arquivo '{old_name}' não encontrado.")
 
     def rename_directory(self, current_name, new_name):
+        # Teste para saber se é um arquivo, se for retorna que não é um diretorio
+        if any(node.name == current_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
+            print(f"{current_name} não é um diretorio")
+            return
+        
         target_directory = next((child for child in self.current_directory.children if child.name == current_name), None)
         
         if not target_directory:
@@ -258,36 +265,17 @@ class SimpleOSSimulated:
         target_directory.name = new_name
         print(f"Diretório '{current_name}' renomeado para '{new_name}' com sucesso.")
 
-    
-    def get_file_path(self, file_node):
-        # Obtém o caminho completo do arquivo percorrendo os pais até o diretório raiz
-        path = file_node.name
-        parent = file_node.parent
-        while parent != self.filesystem:
-            path = f"{parent.name}/{path}"
-            parent = parent.parent
-        return f"C:/{path}"
-
     def open_file(self, file_name):
-        # Inicializa o nó do arquivo como None
-        target_node = None
-        
-        # Itera pelos nós do diretório atual
-        for node in self.current_directory.children:
-            # Verifica se o nome do nó corresponde ao nome do arquivo procurado
-            if node.name == file_name:
-                # Verifica se o nó é um arquivo (possui o atributo 'type' e é do tipo 'file')
-                if hasattr(node, 'type') and node.type == 'file':
-                    target_node = node  # Define o nó como o arquivo encontrado
-                    break  # Interrompe a busca
-
-        # Verifica se o arquivo foi encontrado e é um arquivo válido
-        if target_node:
-            self.current_file = file_name  # Define o arquivo atual
-            print(f"Arquivo '{file_name}' aberto.")
+        # Verifica se o arquivo está no diretório atual e é um arquivo
+        if any(node.name == file_name and node.type == 'file' for node in self.current_directory.children):
+            if self.current_file == file_name:
+                print(f"Arquivo '{file_name}' já está aberto.")
+            else:
+                self.current_file = file_name  # Define o arquivo atual
+                print(f"Arquivo '{file_name}' aberto.")
         else:
             print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
-            self.current_file = None  # Define como None se não puder abrir
+
 
 
     def write_to_file(self, content):
@@ -325,23 +313,37 @@ class SimpleOSSimulated:
             except KeyError:
                 print("Erro ao ler o arquivo.")
         else:
-            print("Não é um arquivo")
+            print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
 
 
     def close_file(self, file_name):
-        try:
-            # Verifica se o arquivo está aberto no diretório atual
-            if any(node.name == file_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
-                print(f"Arquivo '{file_name}' fechado com sucesso.")
-                # Define o arquivo atual como None para indicar que nenhum arquivo está aberto
-                self.current_file = None
-            else:
-                print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo aberto.")
-        except KeyError:
-            print("Erro ao fechar o arquivo.")
+        # Verifica se o arquivo está aberto no diretório atual
+        if self.current_file == file_name:
+            self.current_file = None  # Define o arquivo atual como None
+            print(f"Arquivo '{file_name}' fechado com sucesso.")
+        else:
+            print(f"Arquivo '{file_name}' não está aberto ou é inválido para fechar.")
     
 # Inicialização do SimpleOS Simulado
 simple_os = SimpleOSSimulated()
+
+# Criando situação inicial
+
+simple_os.create_file('nota.txt','1','first-fit')
+simple_os.create_file('prova.pdf','3','first-fit')
+simple_os.create_directory('Imagens')
+simple_os.change_directory('Imagens')
+simple_os.create_file('foto.png','1','first-fit')
+simple_os.change_directory('..')
+simple_os.create_directory('Docs')
+simple_os.change_directory('Docs')
+simple_os.create_file('conta.pdf','2','first-fit')
+simple_os.create_file('projeto.c','1','first-fit')
+simple_os.create_directory('Outros')
+simple_os.change_directory('Outros')
+simple_os.create_file('atividade.py','1','best-fit')
+simple_os.change_directory('..')
+simple_os.change_directory('..')
 
 # Execução do prompt de comando
 simple_os.command_prompt()
