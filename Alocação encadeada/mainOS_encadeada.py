@@ -198,21 +198,27 @@ class SimpleOSSimulated:
             print(f"Arquivo '{filename}' não encontrado.")
     
     def rename_directory(self, current_name, new_name):
-        
+        # Teste para saber se é um arquivo, se for retorna que não é um diretorio
+        # Verifica se há um nó com o nome atual (current_name) e se ele é um arquivo no diretório atual
         if any(node.name == current_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
-            print(f"{current_name} não é um diretorio")
-            return
+            print(f"{current_name} não é um diretório")
+            return  # Retorna sem fazer nada se for um arquivo
         
+        # Encontra o diretório com o nome atual (current_name) dentro dos filhos (children) do diretório atual
         target_directory = next((child for child in self.current_directory.children if child.name == current_name), None)
         
+        # Verifica se o diretório com o nome atual foi encontrado
         if not target_directory:
             print(f"Diretório '{current_name}' não encontrado.")
-            return
+            return  # Retorna se o diretório não foi encontrado
         
+        # Obtém os nomes dos filhos atuais do diretório para verificar se o novo nome já existe
         existing_names = [child.name for child in self.current_directory.children]
+        
+        # Verifica se o novo nome já existe nos filhos do diretório atual
         if new_name in existing_names:
             print(f"Já existe um diretório com o nome '{new_name}'. Escolha outro nome.")
-            return
+            return  # Retorna se o novo nome já existe
         
         target_directory.name = new_name
         print(f"Diretório '{current_name}' renomeado para '{new_name}' com sucesso.")
@@ -237,36 +243,42 @@ class SimpleOSSimulated:
                 # Atualiza o conteúdo do arquivo
                 for node in self.current_directory.children:
                     if node.name == self.current_file:
+                        # Encontra o nó correspondente ao arquivo atual e atualiza seu conteúdo
                         node.content = content
                         print("Conteúdo escrito com sucesso.")
-                        return
+                        return  # Retorna após escrever com sucesso
 
-                print("Erro ao encontrar o arquivo para escrita.")
+                print("Erro ao encontrar o arquivo para escrita.")  # Se não encontrar o arquivo
             else:
-                print("Nenhum arquivo aberto para escrita ou o arquivo é inválido.")
+                print("Nenhum arquivo aberto para escrita ou o arquivo é inválido.")  # Se não houver arquivo aberto ou se for inválido
         except KeyError:
-            print("Erro ao escrever no arquivo.")
+            print("Erro ao escrever no arquivo.")  # Se ocorrer um erro ao escrever no arquivo
 
     def read_from_file(self, file_name):
+        # Verifica se o arquivo existe no diretório atual
         if any(node.name == file_name and hasattr(node, 'type') and node.type == 'file' for node in self.current_directory.children):
             try:
                 target_node = None
+                # Procura pelo nó correspondente ao arquivo desejado no diretório atual
                 for node in self.current_directory.children:
                     if node.name == file_name and node.type == 'file':
                         target_node = node
                         break
-                
+
                 if target_node:
+                    # Se o arquivo for encontrado, exibe seu conteúdo
                     content = target_node.content
                     print("Conteúdo do arquivo:")
                     print(content)
                 else:
+                    # Se o arquivo não for encontrado ou não for um arquivo válido
                     print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
             except KeyError:
+                # Se ocorrer um erro ao ler o arquivo
                 print("Erro ao ler o arquivo.")
         else:
+            # Se o arquivo não for encontrado ou não for um arquivo válido
             print(f"Arquivo '{file_name}' não encontrado ou não é um arquivo.")
-
 
     def close_file(self, file_name):
         # Verifica se o arquivo está aberto no diretório atual
